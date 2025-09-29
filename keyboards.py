@@ -47,11 +47,11 @@ async def check_subscription(bot: Bot, user_id: int):
     if not_subscribed:
         # Tugmalarni massiv sifatida yaratamiz
         buttons = [
-            [InlineKeyboardButton(text="📢 Подписаться", url=link)]
+            [InlineKeyboardButton(text="📢 Obuna bo'ling", url=link)]
             for _, link in not_subscribed
         ]
         # Tekshirish tugmasini qo‘shamiz
-        buttons.append([InlineKeyboardButton(text="✅ Проверить", callback_data="check_subs")])
+        buttons.append([InlineKeyboardButton(text="✅ Tekshiring", callback_data="check_subs")])
 
         kb = InlineKeyboardMarkup(inline_keyboard=buttons)
         return False, kb

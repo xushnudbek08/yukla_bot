@@ -29,10 +29,20 @@ async def download_media(url: str, mode: str):
         "outtmpl": output_path,
         "noplaylist": True,
         "quiet": True,
+        "http_headers": {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/120.0.0.0 Safari/537.36"
+            ),
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": url,
+        },
         "cookiefile": "cookies.txt" if os.path.exists("cookies.txt") else None,
     }
 
     if mode == "mp3":
+        # faqat audio oqimini olishga urinadi
         ydl_opts.update({
             "format": "bestaudio/best",
             "postprocessors": [{
@@ -41,10 +51,11 @@ async def download_media(url: str, mode: str):
                 "preferredquality": "192",
             }],
         })
-    else:  # video
+    else:
+        # video yuklab olish
         ydl_opts.update({
-            # cookiesiz ishlashi uchun MP4 formatni cheklaymiz
             "format": "best[ext=mp4][height<=720]/best[ext=mp4]/best",
+            "merge_output_format": "mp4",
         })
 
     try:
@@ -64,6 +75,7 @@ async def download_media(url: str, mode: str):
         return None
 
 
+
 # URL yuborilganda tugmalar chiqadi
 @yukla.message(F.text.regexp(URL_RE))
 async def ask_format(message: types.Message, bot: Bot):
@@ -75,8 +87,7 @@ async def ask_format(message: types.Message, bot: Bot):
         )
         return
 
-    # ✅ Obuna bo‘lsa
-    await message.answer("✅ Siz obuna bo‘ldingiz, botdan foydalanishingiz mumkin.")
+
 
     url = message.text.strip()
     uid = str(uuid.uuid4())[:8]  # qisqa ID yaratamiz
@@ -109,14 +120,18 @@ async def handle_download(call: CallbackQuery):
     filename = await download_media(url, mode)
 
     if filename and os.path.exists(filename):
-        file = FSInputFile(filename)
-        if mode == "mp3":
-            await call.message.answer_audio(file, caption="✅ Tayyor! 🎵")
+        # Telegram cheklovini tekshiramiz (50 MB)
+        if os.path.getsize(filename) > 49 * 1024 * 1024:
+            await call.message.answer("⚠️ Fayl hajmi katta, Telegram orqali yuborib bo‘lmaydi.")
         else:
-            await call.message.answer_video(file, caption="✅ Tayyor! 🎬")
+            file = FSInputFile(filename)
+            if mode == "mp3":
+                await call.message.answer_audio(file, caption="✅ Tayyor! 🎵")
+            else:
+                await call.message.answer_video(file, caption="✅ Tayyor! 🎬")
         os.remove(filename)
     else:
-        await call.message.answer("❌ Yuklab olishda xatolik bo‘ldi.")
+        await call.message.answer("❌ Bu videoni yuklab bo‘lmaydi (faqat ochiq videolarni yuklab olish mumkin).")
 
     await call.answer()
     URL_STORAGE.pop(uid, None)  # URLni o‘chirib tashlaymiz
