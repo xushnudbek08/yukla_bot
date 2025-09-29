@@ -44,10 +44,10 @@ async def command_start(message: Message,bot: Bot):
         else:
             ok, kb = await check_subscription(bot, message.from_user.id)
             if not ok:
-                await message.answer("❗ Подпишитесь на каналы, чтобы продолжить:", reply_markup=kb)
+                await message.answer("❗Davom etish uchun kanalga obuna bo'ling:", reply_markup=kb)
                 return
     # ✅ Obuna bo'lsa shu yerda asosiy kod bajariladi
-            await message.answer("✅ Вы подписаны, продолжим!")
+            await message.answer("✅ Obuna bo'ldingiz, davom etamiz!")
             await message.answer(f"Qaytganingizdan xursandmiz, {full_name}!")
             add_userr
             await message.answer(f"Xush kelibsiz, {full_name}!")
